@@ -1,6 +1,7 @@
 // express, babel, nodemon, pug
 import http from "http";
-import WebSocket from "ws";
+// import WebSocket from "ws";
+import SocketIO from "socket.io";
 import express from "express";
 import { SocketAddress } from "net";
 import { parse } from "path";
@@ -13,38 +14,41 @@ app.use("/public", express.static(__dirname + "/public"));
 app.get("/", (_, res) => res.render("home"));
 app.get("/*", (_, res) => res.redirect("/"));
 
-const handleListen = () => console.log(`Listening on http://localhost:3000`);
-// app.listen(3000, handleListen);
-
 // 같은 서버에서 http, websocket 둘 다 동작시킴
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const httpServer = http.createServer(app);
+const wsServer = SocketIO(httpServer);
 
-const sockets = [];
+// websocket code
+// const wss = new WebSocket.Server({ httpServer });
+// const sockets = [];
+// websocket 브라우저와의 연결
+// wss.on("connection", (socket) => {
+//   sockets.push(socket);
+//   socket["nickname"] = "Anon";
+//   console.log("Connected to Browser!");
+//   socket.on("close", () => console.log("Disconected from Browser"));
+//   socket.on("message", (msg) => {
+//     const message = JSON.parse(msg);
+//     switch (message.type) {
+//       case "message":
+//         sockets.forEach((aSocket) =>
+//           aSocket.send(
+//             `${socket.nickname}: ${message.payload.toString("utf-8")}`
+//           )
+//         );
+//         break;
+//       case "nickname":
+//         socket["nickname"] = message.payload;
+//         break;
+//       default:
+//         throw new Error("Error");
+//     }
+//   });
+// });
 
-// 브라우저와의 연결
-wss.on("connection", (socket) => {
-  sockets.push(socket);
-  socket["nickname"] = "Anon";
-  console.log("Connected to Browser!");
-  socket.on("close", () => console.log("Disconected from Browser"));
-  socket.on("message", (msg) => {
-    const message = JSON.parse(msg);
-    switch (message.type) {
-      case "message":
-        sockets.forEach((aSocket) =>
-          aSocket.send(
-            `${socket.nickname}: ${message.payload.toString("utf-8")}`
-          )
-        );
-        break;
-      case "nickname":
-        socket["nickname"] = message.payload;
-        break;
-      default:
-        throw new Error("Error");
-    }
-  });
+wsServer.on("connection", (socket) => {
+  console.log(socket);
 });
 
-server.listen(3000, handleListen);
+const handleListen = () => console.log(`Listening on http://localhost:3000`);
+httpServer.listen(3000, handleListen);
