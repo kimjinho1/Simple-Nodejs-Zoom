@@ -18,13 +18,18 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection", (socket) => {
+  // onAny: socket 관련 모든 이벤트를 감지
   socket.onAny((event) => {
     console.log(`Socket Event: ${event}`);
   });
   socket.on("enter_room", (roomName, done) => {
+    // join: 채팅 방에 입장
     socket.join(roomName);
-    // socket.to(roomName).emit(`hi`);
     done();
+    // to: 특정 방을 저격함
+    // 채팅 방에 접속해있는 사람들에게 welcome 메세지 보냄,
+    // 처음에는 들어와있는 사람이 없어서 아무것도 안보임
+    socket.to(roomName).emit(`welcome`);
   });
 });
 
