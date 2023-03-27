@@ -17,9 +17,17 @@ function addMessage(message) {
   ul.appendChild(li);
 }
 
+function handleNicknameSubmit(event) {
+  event.preventDefault();
+  const input = room.querySelector("#name input");
+  const value = input.value;
+  socket.emit("nickname", value);
+  input.value = "";
+}
+
 function handleMessageSubmit(event) {
   event.preventDefault();
-  const input = room.querySelector("input");
+  const input = room.querySelector("#msg input");
   // 아래 줄이 없으면 input.value가 아래에서 비워진 상태라 동작이 이상해짐
   const value = input.value;
   socket.emit("new_message", value, roomName, () => {
@@ -34,8 +42,10 @@ function showRoom() {
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName}`;
 
-  const form = room.querySelector("form");
-  form.addEventListener("submit", handleMessageSubmit);
+  const nameForm = room.querySelector("#name");
+  const msgForm = room.querySelector("#msg");
+  nameForm.addEventListener("submit", handleNicknameSubmit);
+  msgForm.addEventListener("submit", handleMessageSubmit);
 }
 
 function handleRoomSubmit(event) {
@@ -53,12 +63,12 @@ function handleRoomSubmit(event) {
 
 form.addEventListener("submit", handleRoomSubmit);
 
-socket.on("welcome", () => {
-  addMessage("Someone joined!");
+socket.on("welcome", (user) => {
+  addMessage(`${user} joined!`);
 });
 
-socket.on("bye", () => {
-  addMessage("Someone left!");
+socket.on("bye", (left) => {
+  addMessage(`${left} left!`);
 });
 
 socket.on("new_message", (msg) => addMessage(msg));

@@ -18,6 +18,8 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection", (socket) => {
+  socket["nickname"] = "Anon";
+
   // onAny: socket 관련 모든 이벤트를 감지
   socket.onAny((event) => {
     console.log(`Socket Event: ${event}`);
@@ -31,19 +33,23 @@ wsServer.on("connection", (socket) => {
     // to: 특정 방을 저격함, 근데 자신의 방에는 적용 안됨
     // 채팅 방에 접속해있는 사람들에게 welcome 메세지 보냄,
     // 처음에는 들어와있는 사람이 없어서 아무것도 안보임
-    socket.to(roomName).emit(`welcome`);
+    socket.to(roomName).emit("welcome", socket.nickname);
   });
 
   // 연결이 완전히 끊기지 않음 -> 방에 아직 연결됨
   // 완전히 끊긴건 disconnect임
   socket.on("disconnecting", () => {
-    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+    socket.rooms.forEach((room) =>
+      socket.to(room).emit("bye", socket.nickname)
+    );
   });
 
   socket.on("new_message", (msg, roomName, done) => {
-    socket.to(roomName).emit("new_message", msg);
+    socket.to(roomName).emit("new_message", `${socket["nickname"]}: ${msg}`);
     done();
   });
+
+  socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
 });
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
