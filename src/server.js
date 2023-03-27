@@ -3,6 +3,7 @@ import http from "http";
 import WebSocket from "ws";
 import express from "express";
 import { SocketAddress } from "net";
+import { parse } from "path";
 
 const app = express();
 
@@ -24,12 +25,26 @@ const sockets = [];
 // 브라우저와의 연결
 wss.on("connection", (socket) => {
   sockets.push(socket);
+  socket["nickname"] = "Anon";
   console.log("Connected to Browser!");
   socket.on("close", () => console.log("Disconected from Browser"));
-  socket.on("message", (message) => {
-    sockets.forEach((aSocket) => aSocket.send(message.toString()));
+  socket.on("message", (msg) => {
+    const message = JSON.parse(msg);
+    switch (message.type) {
+      case "message":
+        sockets.forEach((aSocket) =>
+          aSocket.send(
+            `${socket.nickname}: ${message.payload.toString("utf-8")}`
+          )
+        );
+        break;
+      case "nickname":
+        socket["nickname"] = message.payload;
+        break;
+      default:
+        throw new Error("Error");
+    }
   });
-  socket.send("hello!");
 });
 
 server.listen(3000, handleListen);
