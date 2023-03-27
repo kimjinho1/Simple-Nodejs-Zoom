@@ -1,6 +1,5 @@
 // express, babel, nodemon, pug
 import http from "http";
-// import WebSocket from "ws";
 import SocketIO from "socket.io";
 import express from "express";
 import { SocketAddress } from "net";
@@ -18,36 +17,13 @@ app.get("/*", (_, res) => res.redirect("/"));
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
-// websocket code
-// const wss = new WebSocket.Server({ httpServer });
-// const sockets = [];
-// websocket 브라우저와의 연결
-// wss.on("connection", (socket) => {
-//   sockets.push(socket);
-//   socket["nickname"] = "Anon";
-//   console.log("Connected to Browser!");
-//   socket.on("close", () => console.log("Disconected from Browser"));
-//   socket.on("message", (msg) => {
-//     const message = JSON.parse(msg);
-//     switch (message.type) {
-//       case "message":
-//         sockets.forEach((aSocket) =>
-//           aSocket.send(
-//             `${socket.nickname}: ${message.payload.toString("utf-8")}`
-//           )
-//         );
-//         break;
-//       case "nickname":
-//         socket["nickname"] = message.payload;
-//         break;
-//       default:
-//         throw new Error("Error");
-//     }
-//   });
-// });
-
 wsServer.on("connection", (socket) => {
-  console.log(socket);
+  socket.on("enter_room", (msg, done) => {
+    console.log(msg);
+    setTimeout(() => {
+      done();
+    }, 5000);
+  });
 });
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
