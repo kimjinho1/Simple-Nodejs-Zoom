@@ -2,6 +2,7 @@
 import http from "http";
 import WebSocket from "ws";
 import express from "express";
+import { SocketAddress } from "net";
 
 const app = express();
 
@@ -18,8 +19,16 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`);
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+const sockets = [];
+
 // 브라우저와의 연결
 wss.on("connection", (socket) => {
+  sockets.push(socket);
+  console.log("Connected to Browser!");
+  socket.on("close", () => console.log("Disconected from Browser"));
+  socket.on("message", (message) => {
+    sockets.forEach((aSocket) => aSocket.send(message.toString()));
+  });
   socket.send("hello!");
 });
 
