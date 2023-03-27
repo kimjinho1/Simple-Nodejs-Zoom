@@ -22,14 +22,27 @@ wsServer.on("connection", (socket) => {
   socket.onAny((event) => {
     console.log(`Socket Event: ${event}`);
   });
+
   socket.on("enter_room", (roomName, done) => {
     // join: 채팅 방에 입장
     socket.join(roomName);
+    console.log(socket.rooms);
     done();
-    // to: 특정 방을 저격함
+    // to: 특정 방을 저격함, 근데 자신의 방에는 적용 안됨
     // 채팅 방에 접속해있는 사람들에게 welcome 메세지 보냄,
     // 처음에는 들어와있는 사람이 없어서 아무것도 안보임
     socket.to(roomName).emit(`welcome`);
+  });
+
+  // 연결이 완전히 끊기지 않음 -> 방에 아직 연결됨
+  // 완전히 끊긴건 disconnect임
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+  });
+
+  socket.on("new_message", (msg, roomName, done) => {
+    socket.to(roomName).emit("new_message", msg);
+    done();
   });
 });
 
