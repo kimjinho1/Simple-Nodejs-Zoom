@@ -1,4 +1,6 @@
 // express, babel, nodemon, pug
+import http from "http";
+import WebSocket from "ws";
 import express from "express";
 
 const app = express();
@@ -10,4 +12,15 @@ app.get("/", (_, res) => res.render("home"));
 app.get("/*", (_, res) => res.redirect("/"));
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
-app.listen(3000, handleListen);
+// app.listen(3000, handleListen);
+
+// 같은 서버에서 http, websocket 둘 다 동작시킴
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+// 브라우저와의 연결
+wss.on("connection", (socket) => {
+  socket.send("hello!");
+});
+
+server.listen(3000, handleListen);
